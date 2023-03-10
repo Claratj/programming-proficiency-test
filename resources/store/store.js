@@ -1,113 +1,80 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable object-curly-newline */
+import Vue from 'vue';
+import Vuex from 'vuex';
+// import createPersistedState from 'vuex-persistedstate';
 import { users, properties, propertyTypes } from '../mocks/api';
 
-export const state = () => ({
-  propertyItem: {
-    id: null,
-    userId: null,
-    typeId: null,
-    name: '',
-    rentedFrom: null,
-    rentedTo: null,
+Vue.use(Vuex);
+
+const store = new Vuex.Store({
+  state: {
+    properties,
+    users,
+    propertyTypes,
   },
-  userItem: {
-    id: null,
-    name: '',
+  getters: {},
+  mutations: {
+    create({ typeId, name, rentedFrom, rentedTo, userName }) {
+      const propertyItem = {
+        id: _createNewIdProperties(),
+        userId: _calculateNewUserId(),
+        typeId,
+        name,
+        rentedFrom: rentedFrom ? new Date(rentedFrom) : null,
+        rentedTo: rentedTo ? new Date(rentedTo) : null,
+      };
+      const userItem = {
+        id: _calculateNewUserId(),
+        name: userName,
+      };
+      properties.push(propertyItem);
+      users.push(userItem);
+    },
+    update({ id, userId, typeId, name, rentedFrom, rentedTo, userName }) {
+      const indexProperty = this.state.properties.findIndex((item) => item.id === id);
+      const propertyItem = {
+        id,
+        userId,
+        typeId,
+        name,
+        rentedFrom: rentedFrom ? new Date(rentedFrom) : null,
+        rentedTo: rentedTo ? new Date(rentedTo) : null,
+      };
+      const userItem = {
+        id: userId,
+        name: userName,
+      };
+      properties.splice(indexProperty, 1, propertyItem);
+      users.splice(userId, 1, userItem);
+    },
+    remove(id) {
+      const index = this.state.properties.findIndex((item) => item.id === id);
+      this.state.properties.splice(index, 1, id);
+    },
   },
-  users,
-  propertyTypes,
-  properties,
+  actions: {
+    create({ commit }, payload) {
+      commit('create', payload);
+      return payload;
+    },
+    update({ commit }, payload) {
+      commit('update', payload);
+      return payload;
+    },
+    remove({ commit }, { id }) {
+      commit('remove', id);
+    },
+  },
+  // plugins: [
+  //   createPersistedState({
+  //     storage: window.localStorage,
+  //     paths: ['state.properties', 'state.users'],
+  //   }),
+  // ],
 });
 
-export const getters = {};
-
-const mutations = {
-  RESET() {
-    state.propertyItems = {
-      id: null,
-      userId: null,
-      typeId: null,
-      name: '',
-      rentedFrom: null,
-      rentedTo: null,
-    };
-    state.userItem = {
-      id: null,
-      name: '',
-    };
-    state.typeItem = {
-      id: null,
-      name: '',
-    };
-  },
-  ADD({ typeId, name, rentedFrom, rentedTo, userName }) {
-    state.propertyItem = {
-      id: _createNewIdProperties(),
-      userId: _calculateNewUserId(),
-      typeId,
-      name,
-      rentedFrom: rentedFrom ? new Date(rentedFrom) : null,
-      rentedTo: rentedTo ? new Date(rentedTo) : null,
-    };
-    state.userItem = {
-      id: _calculateNewUserId(),
-      name: userName,
-    };
-    properties.push(state.propertyItems);
-    users.push(state.userItem);
-    this.clean();
-  },
-  REPLACE({ id, userId, typeId, name, rentedFrom, rentedTo, userName }) {
-    const indexProperty = state.properties.findIndex((item) => item.id === id);
-    state.propertyItem = {
-      id,
-      userId,
-      typeId,
-      name,
-      rentedFrom: rentedFrom ? new Date(rentedFrom) : null,
-      rentedTo: rentedTo ? new Date(rentedTo) : null,
-    };
-    state.userItem = {
-      id: userId,
-      name: userName,
-    };
-    properties.splice(indexProperty, 1, state.propertyItem);
-    users.splice(userId, 1, state.userItem);
-    this.clean();
-  },
-  REMOVE(id) {
-    console.log('estoy en el remove', id);
-    const index = state.properties.findIndex((item) => item.id === id);
-    state.properties.splice(index, 1);
-    this.clean();
-  },
-};
-
-export const actions = {
-  clean() {
-    mutations.RESET();
-  },
-  create(payload) {
-    mutations.ADD(payload);
-    return payload;
-  },
-  update(payload) {
-    mutations.REPLACE(payload);
-    return payload;
-  },
-  remove({ id }) {
-    console.log('estoy en actions remove');
-    mutations.REMOVE(id);
-  },
-};
-
-export default {
-  state,
-  getters,
-  mutations,
-  actions,
-};
+export default store;
 
 // Lo he llamado con underscore para indicar que es una función interna.
 // eslint-disable-next-line no-underscore-dangle

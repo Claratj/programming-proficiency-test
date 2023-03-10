@@ -86,3 +86,9 @@ export const properties = [
     rentedTo: null,
   },
 ];
+
+export default {
+  users,
+  properties,
+  propertyTypes,
+};
